@@ -2,16 +2,16 @@
 
 ## Prepare the workspace
 
-##### Create a directory for files and results
+#### Create a directory for files and results
 
 ```ruby
 mkdir WorkshpoBI/Project1/raw_data
 cd WorkshpoBI/Project1/raw_data
 ```
 
-##### Download raw data
+#### Download raw data
 
-1. Reference sequence of the parental _E. coli_ strain (sequence in `.fna` and annotation in `.gff`):
+1. Reference sequence of the parental _E. coli_ strain:
 ```ruby
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/005/845/GCF_000005845.2_ASM584v2/GCF_000005845.2_ASM584v2_genomic.fna.gz
 wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/005/845/GCF_000005845.2_ASM584v2/GCF_000005845.2_ASM584v2_genomic.gff.gz
@@ -20,19 +20,19 @@ wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/005/845/GCF_000005845.2_AS
 
 Just go to the [link](https://doi.org/10.6084/m9.figshare.10006541.v3) and click "download".
 
-##### Checking the data
+#### Checking the data
 
 ```ruby
 ls
 ```
-- `GCF_000005845.2_ASM584v2_genomic.fna.gz`
-- `GCF_000005845.2_ASM584v2_genomic.gff.gz`
-- `amp_res_1.fastq.gz`
-- `amp_res_2.fastq.gz`
+- `GCF_000005845.2_ASM584v2_genomic.fna.gz` — reference sequence
+- `GCF_000005845.2_ASM584v2_genomic.gff.gz` — annotation
+- `amp_res_1.fastq.gz` — forward rerads
+- `amp_res_2.fastq.gz` — reverse rerads
 
 ## Inspect raw sequencing data manually
 
-##### Checking the files structure
+#### Checking the files structure
 
 ```ruby
 zcat amp_res_1.fastq.gz | head -20
@@ -48,3 +48,11 @@ for each base.
 |  Separator  | `+`    |
 | Quality     | `@?:=:;DBFADH;CAECEE@@:FFHGAE4?C?DE<BFGEC>?>FHE4BFFIIFHIBABEECA83;>>@`     |
 
+
+#### Counting reads in files
+
+```ruby
+zcat amp_res_1.fastq.gz | wc -l
+zcat amp_res_2.fastq.gz | wc -l
+```
+Each file contains `1 823 504` lines, which means `455 876` reads.
