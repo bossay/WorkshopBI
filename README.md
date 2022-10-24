@@ -25,10 +25,10 @@ Just go to the [link](https://doi.org/10.6084/m9.figshare.10006541.v3) and click
 ```ruby
 ls
 ```
-- `GCF_000005845.2_ASM584v2_genomic.fna.gz` — reference sequence
-- `GCF_000005845.2_ASM584v2_genomic.gff.gz` — annotation
-- `amp_res_1.fastq.gz` — forward rerads
-- `amp_res_2.fastq.gz` — reverse rerads
+> - `GCF_000005845.2_ASM584v2_genomic.fna.gz` — reference sequence
+> - `GCF_000005845.2_ASM584v2_genomic.gff.gz` — annotation
+> - `amp_res_1.fastq.gz` — forward rerads
+> - `amp_res_2.fastq.gz` — reverse rerads
 
 ## Inspect raw sequencing data manually
 
@@ -78,13 +78,13 @@ If we see the [manual page](https://home.cc.umanitoba.ca/~psgendb/doc/fastqc.hel
 ### Run fastqc
 
 ```ruby
-fastqc -o ./QCbefore ./raw_data/amp_res_1.fastq ./raw_data/amp_res_2.fastq
+fastqc -o ./QCbefore amp_res_1.fastq amp_res_2.fastq
 ```
 ### Basic statistics of raw reads
 
 | Measure  | Value (Forward)|Value (Reverse)|
 | ------------- |-------------|-------------|
-| Total Sequences | 455876    | 455876 |
+| Total Sequences | 455 876    | 455 876 |
 |  Sequence length  | 101   | 101  |
 | %GC    | 50  | 50 |
 | Low quality    | Per base sequence quality,  Per tile sequence quality |Per base sequence quality |
@@ -126,3 +126,70 @@ The command is executed with a comment:
 wc -l amp_1.trimmed.fastq
 ```
 Each file contains `1 785 036` lines, which means `446 259` reads.
+
+### Repeat the fastqc analysis 
+
+```ruby
+fastqc -o ./QCafter amp_1.trimmed.fastq amp_2.trimmed.fastq
+```
+### Basic statistics of raw reads
+
+| Measure  | Value (Forward)|Value (Reverse)|
+| ------------- |-------------|-------------|
+| Total Sequences | 446 259    | 446 259 |
+|  Sequence length  | 20-101   | 20-101  |
+| %GC    | 50  | 50 |
+| Low quality    | Per tile sequence quality |- |
+
+## Aligning sequences to reference
+### Checking bwa
+
+```ruby
+bwa
+```
+If we see the manual page, everything is fine.
+
+## Run bwa index
+
+```ruby
+bwa index -p index GCF_000005845.2_ASM584v2_genomic.fna
+```
+There are 4 new files in the directory:
+
+> - `GCF_000005845.2_ASM584v2_genomic.fna.amb`
+> - `GCF_000005845.2_ASM584v2_genomic.fna.ann`
+> - `GCF_000005845.2_ASM584v2_genomic.fna.bwt`
+> - `GCF_000005845.2_ASM584v2_genomic.fna.pac`
+> - `GCF_000005845.2_ASM584v2_genomic.fna.sa`
+
+## Align your reads
+### Run bwa mem
+
+```ruby
+bwa mem GCF_000005845.2_ASM584v2_genomic.fna amp_1.trimmed.fastq amp_2.trimmed.fastq > GCF_000005845.2_ASM584v2_genomic.fna.sam
+```
+The names of the files `.amb`, `.ann`, `.bwt`, `.pac`, `.sa` must match the name of the file with the reference genome.
+
+## Compress SAM file
+### Run samtools
+
+```ruby
+samtools view -S -b GCF_000005845.2_ASM584v2_genomic.fna.sam > GCF_000005845.2_ASM584v2_genomic.fna.bam
+```
+### Checking basic statistics
+```ruby
+samtools flagstat GCF_000005845.2_ASM584v2_genomic.fna.bam
+```
+>- 892776 + 0 in total (QC-passed reads + QC-failed reads)
+> - 0 + 0 secondary
+> - 258 + 0 supplementary
+> - 0 + 0 duplicates
+> - 891649 + 0 mapped (99.87% : N/A)
+> - 892518 + 0 paired in sequencing
+> - 446259 + 0 read1
+> - 446259 + 0 read2
+> - 888554 + 0 properly paired (99.56% : N/A)
+> - 890412 + 0 with itself and mate mapped
+> - 979 + 0 singletons (0.11% : N/A)
+> - 0 + 0 with mate mapped to a different chr
+> - 0 + 0 with mate mapped to a different chr (mapQ>=5)
