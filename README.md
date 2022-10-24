@@ -64,7 +64,7 @@ Each file contains `1 823 504` lines, which means `455 876` reads.
 ```ruby
 wget -O Mambaforge.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
 bash Mambaforge.sh -b -p "${HOME}/conda"
-source "${HOME}/conda/etc/profile.d/conda.sh"
+source "${HOME}/conda/etc/profile.d/conda.sh”
 conda activate
 mamba install -c bioconda fastqc
 ```
@@ -75,11 +75,13 @@ fastqc -h
 ```
 If we see the [manual page](https://home.cc.umanitoba.ca/~psgendb/doc/fastqc.help), everything is fine.
 
-### Run the program fastqc
+### Run fastqc
+
 ```ruby
 fastqc -o ./QCbefore ./raw_data/amp_res_1.fastq ./raw_data/amp_res_2.fastq
 ```
 ### Basic statistics of raw reads
+
 | Measure  | Value (Forward)|Value (Reverse)|
 | ------------- |-------------|-------------|
 | Total Sequences | 455876    | 455876 |
@@ -87,3 +89,40 @@ fastqc -o ./QCbefore ./raw_data/amp_res_1.fastq ./raw_data/amp_res_2.fastq
 | %GC    | 50  | 50 |
 | Low quality    | Per base sequence quality,  Per tile sequence quality |Per base sequence quality |
 
+## Filtering the reads
+### Installing trimmomatic via conda
+
+Install a program for trimming adapters and low-quality reads - [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)
+
+```ruby
+conda install -c bioconda trimmomatic
+```
+### Checking trimmomatic
+
+```ruby
+trimmomatic
+```
+If we see the manual page, everything is fine.
+
+### Run trimmomatic
+
+Run Trimmomatic in paired end mode, with following parameters:
++ Cut bases off the start of a read if quality below 20 (`LEADING`)
++ Cut bases off the end of a read if quality below 20 (`TRAILING`)
++ Trim reads using a sliding window approach, with window size 10 and average quality within the window 20 (`SLIDINGWINDOW:10:20`)
++ Drop the read if it is below length 20 (`MINLEN`)
+
+```ruby
+trimmomatic PE -threads 4 amp_res_1.fastq.gz amp_res_2.fastq.gz amp_1.trimmed.fastq amp_1un.trimmed.fastq amp_2.trimmed.fastq amp_2un.trimmed.fastq LEADING:20 TRAILING:20 SLIDINGWINDOW:10:20 MINLEN:20
+```
+The command is executed with a comment:
+> Quality encoding detected as phred33
+>
+> Input Read Pairs: 455876 Both Surviving: 446259 (97.89%) Forward Only Surviving: 9216 (2.02%) Reverse Only Surviving: 273 (0.06%) Dropped: 128 (0.03%)
+
+### Counting reads in files
+
+```ruby
+wc -l amp_1.trimmed.fastq
+```
+Each file contains `1 785 036` lines, which means `446 259` reads.
