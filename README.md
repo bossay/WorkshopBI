@@ -180,7 +180,7 @@ samtools view -S -b GCF_000005845.2_ASM584v2_genomic.fna.sam > GCF_000005845.2_A
 ```ruby
 samtools flagstat GCF_000005845.2_ASM584v2_genomic.fna.bam
 ```
-> - 892776 + 0 in total (QC-passed reads + QC-failed reads)
+>- 892776 + 0 in total (QC-passed reads + QC-failed reads)
 > - 0 + 0 secondary
 > - 258 + 0 supplementary
 > - 0 + 0 duplicates
@@ -252,9 +252,49 @@ java -jar VarScan.v2.4.0.jar mpileup2snp GCF_000005845.2_ASM584v2_genomic.mpileu
 
 More about [Variant Call Format](https://samtools.github.io/hts-specs/VCFv4.2.pdf) format
 
+## Automatic SNP annotation
+
+### SnpEff installation
+
+Use automatic tools for snp annotation `SnpEff`
+
+```ruby
+conda install -c bioconda snpEff
+```
+### Download sequence and annotation of reference
+
+```ruby
+wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/005/845/GCF_000005845.2_ASM584v2/GCF_000005845.2_ASM584v2_genomic.gbff.gz
+```
+### Create database
+
+Create empty text file `snpeff.config`, and add there just one string: 
+>k12.genome : ecoli_K12
+
+Create folder for the database
+
+```ruby
+mkdir -p data/k12
+```
+Put there .gbk file (unzip and rename to genes.gbk):
+
+```ruby
+gunzip GCF_000005845.2_ASM584v2_genomic.gbff.gz
+cp GCF_000005845.2_ASM584v2_genomic.gbff data/k12/genes.gbk
+```
+
+Create database:
+```ruby
+snpEff build -genbank -v k12
+```
+### Annotation
+```ruby
+snpEff ann k12 VarScan_results.vcf > annotation_k12.vcf
+```
+
 ### Visualize .vcf file
 
-Go back to IGV browser and add two more tracks - `VarScan_results.vcf` and annotation `GCF_000005845.2_ASM584v2_genomic.gff.gz`.
+Go back to IGV browser and add two more tracks - `annotation_k12.vcf` and annotation `GCF_000005845.2_ASM584v2_genomic.gff.gz`.
 
 
-## Automatic SNP annotation
+## Ready! You`re incredible!
