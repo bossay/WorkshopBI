@@ -180,7 +180,7 @@ samtools view -S -b GCF_000005845.2_ASM584v2_genomic.fna.sam > GCF_000005845.2_A
 ```ruby
 samtools flagstat GCF_000005845.2_ASM584v2_genomic.fna.bam
 ```
->- 892776 + 0 in total (QC-passed reads + QC-failed reads)
+> - 892776 + 0 in total (QC-passed reads + QC-failed reads)
 > - 0 + 0 secondary
 > - 258 + 0 supplementary
 > - 0 + 0 duplicates
@@ -193,3 +193,68 @@ samtools flagstat GCF_000005845.2_ASM584v2_genomic.fna.bam
 > - 979 + 0 singletons (0.11% : N/A)
 > - 0 + 0 with mate mapped to a different chr
 > - 0 + 0 with mate mapped to a different chr (mapQ>=5)
+
+## Sort and index BAM file
+
+### Sort bam file by sequence coordinate on reference
+```ruby
+samtools sort GCF_000005845.2_ASM584v2_genomic.fna.bam -o GCF_000005845.2_ASM584v2_genomic.fna.bam_sorted.bam
+```
+
+### Index bam file
+```ruby
+samtools index GCF_000005845.2_ASM584v2_genomic.fna.bam_sorted.bam
+```
+
+### Visualize the data
+
+Visualize what the data actually looks like in the [IGV browser](https://software.broadinstitute.org/software/igv/)
+
+Select `Genomes`, `Load Genome from File` and select reference genome. Then select `File`, `Open from file` and select BAM file.
+
+## Variant calling
+
+### Create an intermediate mpileup file
+
+```ruby
+samtools mpileup -f GCF_000005845.2_ASM584v2_genomic.fna GCF_000005845.2_ASM584v2_genomic.fna.bam_sorted.bam > GCF_000005845.2_ASM584v2_genomic.mpileup
+```
+### VarScan installation
+Download `VarScan.v2.4.0.jar` from [GitHub repository](https://github.com/dkoboldt/varscan) to your working directory.
+
+### Checking VarScan
+
+```ruby
+java -jar VarScan.v2.4.0.jar mpileup2snp -h
+```
+If we see the manual page, everything is fine.
+
+### Run VarScan
+
+Run the program with the threshold 0.5 (minimum 50% of non-reference bases at a position required to
+call it a mutation in the sample):
+
+```ruby
+java -jar VarScan.v2.4.0.jar mpileup2snp GCF_000005845.2_ASM584v2_genomic.mpileup --min-var-freq 0.5 --variants --output-vcf 1 > VarScan_results.vcf
+```
+> - Only SNPs will be reported
+> - Warning: No p-value threshold provided, so p-values will not be calculated
+> - Min coverage:   8
+> - Min reads2:     2
+> - Min var freq:   0.5
+> - Min avg qual:   15
+> - P-value thresh: 0.01
+> - Reading input from GCF_000005845.2_ASM584v2_genomic.mpileup
+> - 4641343 bases in pileup file
+> - 9 variant positions (6 SNP, 3 indel)
+> - 1 were failed by the strand-filter
+> - 5 variant positions reported (5 SNP, 0 indel)
+
+More about [Variant Call Format](https://samtools.github.io/hts-specs/VCFv4.2.pdf) format
+
+### Visualize .vcf file
+
+Go back to IGV browser and add two more tracks - `VarScan_results.vcf` and annotation `GCF_000005845.2_ASM584v2_genomic.gff.gz`.
+
+
+## Automatic SNP annotation
