@@ -64,7 +64,7 @@ Each file contains `1 823 504` lines, which means `455 876` reads.
 ```ruby
 wget -O Mambaforge.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
 bash Mambaforge.sh -b -p "${HOME}/conda"
-source "${HOME}/conda/etc/profile.d/conda.sh”
+source "${HOME}/conda/etc/profile.d/conda.sh"
 conda activate
 mamba install -c bioconda fastqc
 ```
