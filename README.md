@@ -1,4 +1,4 @@
-# Project #2 “Why did I get the flu?”. Deep sequencing, error control, p-value, viral evolution..
+# Project #2 “Why did I get the flu?”. Deep sequencing, error control, p-value, viral evolution.
 
 ## 1. Prepare the workspace
 
