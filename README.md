@@ -215,8 +215,46 @@ cat VarScan_results59_0_001.vcf | awk 'NR>24 {print $1, $2, $4, $5, $10}' > Vari
 
 cat VarScan_results60_0_001.vcf | awk 'NR>24 {print $1, $2, $4, $5, $10}' > Variants60_0_001.txt
 ```
+## Error control
+
 ### 6.3. Calculate the average and standard deviation
 
  Calculate the average and standard deviation of the frequencies reported within each list.
+
+|                      | Error rate (m±sd) |
+|----------------------|:-----------------:|
+| Variants58_0_001.txt |     0.26±0.07%    |
+| Variants59_0_001.txt |     0.24±0.05%    |
+| Variants60_0_001.txt |     0.25±0.08%    |
+
+Total error rate was `0.25±0.07%`. By calculating 3 standard deviations, we obtain that the error rate does not exceed `0.45%`.
+
+### 6.4. Compare the control results to your results
+
+| **Chromosome** | **Position** | **Reference** | **Alternative** | **Frequency** | **Change in protein** | **Type of gene variants** |
+|----------------|--------------|---------------|-----------------|---------------|------------------------|----------------------------|
+| KF848938.1     | 72           | A             | G               | 99.96%        | p.Thr24=               | Synonymous variant         |
+| KF848938.1     | 774          | T             | C               | 99.96%        | p.Phe258=              | Synonymous variant         |
+| KF848938.1     | 1260         | A             | C               | 99.94%        | p.Leu420=              | Synonymous variant         |
+| KF848938.1     | 999          | C             | T               | 99.86%        | p.Gly333=              | Synonymous variant         |
+| KF848938.1     | 117          | C             | T               | 99.82%        | p.Ala39=               | Synonymous variant         |
+| KF848938.1     | 307          | C             | T               | 0.94%         | p.Pro103Ser            | Missense variant           |
+| KF848938.1     | 1458         | T             | C               | 0.84%         | p.Tyr190=              | Synonymous variant         |
+| KF848938.1     | 802          | A             | G               | 0.23%         | Error                  |                            |
+| KF848938.1     | 389          | T             | C               | 0.22%         | Error                  |                            |
+| KF848938.1     | 1213         | A             | G               | 0.22%         | Error                  |                            |
+| KF848938.1     | 1086         | A             | G               | 0.21%         | Error                  |                            |
+| KF848938.1     | 722          | A             | G               | 0.20%         | Error                  |                            |
+| KF848938.1     | 915          | T             | C               | 0.19%         | Error                  |                            |
+| KF848938.1     | 859          | A             | G               | 0.18%         | Error                  |                            |
+| KF848938.1     | 1043         | A             | G               | 0.18%         | Error                  |                            |
+| KF848938.1     | 1280         | T             | C               | 0.18%         | Error                  |                            |
+| KF848938.1     | 254          | A             | G               | 0.17%         | Error                  |                            |
+| KF848938.1     | 276          | A             | G               | 0.17%         | Error                  |                            |
+| KF848938.1     | 340          | T             | C               | 0.17%         | Error                  |                            |
+| KF848938.1     | 691          | A             | G               | 0.17%         | Error                  |                            |
+| KF848938.1     | 744          | A             | G               | 0.17%         | Error                  |                            |
+
+As a result, 7 variants had a frequency higher than the error rate. At the same time, 5 of which were high-frequency. All high-frequency variants and one rare variant resulted in synonymous substitutions. Only one variant resulted in the replacement of the amino acid `p.Pro103Ser`.
 
 ## Ready! You`re incredible!
