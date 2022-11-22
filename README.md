@@ -1,260 +1,134 @@
-# Project #2 “Why did I get the flu?”. Deep sequencing, error control, p-value, viral evolution.
+# Project #3 E.coli outbreak investigation 
 
 ## 1. Prepare the workspace
 
 ### 1.1. Create a directory for files and results
 
 ```ruby
-mkdir WorkshpoBI/Project2/raw_data
-cd WorkshpoBI/Project2/raw_data
+mkdir WorkshpoBI/Project3/raw_data
+cd WorkshpoBI/Project3/raw_data
 ```
 
 ### 1.2. Download raw data
 
-Just go to the [link](http://ftp.sra.ebi.ac.uk/vol1/fastq/SRR170/001/SRR1705851/) and click to `SRR1705851.fastq.gz` to get the sequence being studied.
+We provide three libraries from the TY2482:
 
-Go to the [link](https://www.ncbi.nlm.nih.gov/nuccore/KF848938.1?report=fasta), click to `Send to`, select `File` and format `FASTA` to get the reference sequence. I called it `reference.fasta`.
+> `SRR292678` - paired end, insert size 470 bp
+>
+> `SRR292862` - mate pair, insert size 2 kb
+>
+> `SRR292770` - mate pair, insert size 6 kb
 
+Download the sequences:
 
+```ruby
+wget https://d28rh4a8wq0iu5.cloudfront.net/bioinfo/SRR292678sub_S1_L001_R1_001.fastq.gz
+
+wget https://d28rh4a8wq0iu5.cloudfront.net/bioinfo/SRR292678sub_S1_L001_R2_001.fastq.gz
+
+wget https://d28rh4a8wq0iu5.cloudfront.net/bioinfo/SRR292862_S2_L001_R1_001.fastq.gz
+
+wget https://d28rh4a8wq0iu5.cloudfront.net/bioinfo/SRR292862_S2_L001_R2_001.fastq.gz
+
+wget https://d28rh4a8wq0iu5.cloudfront.net/bioinfo/SRR292770_S1_L001_R1_001.fastq.gz
+
+wget https://d28rh4a8wq0iu5.cloudfront.net/bioinfo/SRR292770_S1_L001_R2_001.fastq.gz
+```
 ## 2. Inspect raw sequencing data
 
-### 2.1. Checking the files structure
-
-```ruby
-zcat SRR1705851.fastq.gz | head -20
-```
-The data has a standard .fasta file structure.
-
-### 2.2. Counting reads in files
-
-```ruby
-zcat SRR1705851.fastq.gz | wc -l
-```
-Each file contains `1 433 060` lines, which means `358 265` reads.
-
-### 2.3. Run fastqc
+### 2.1. Create a directory and unpack the files
 
 ```ruby
 mkdir ../QC
-gunzip SRR1705851.fastq.gz
-fastqc -o ../QC SRR1705851.fastq
+gunzip SRR292678sub_S1_L001_R1_001.fastq.gz SRR292678sub_S1_L001_R2_001.fastq.gz SRR292770_S1_L001_R1_001.fastq.gz SRR292770_S1_L001_R2_001.fastq.gz SRR292862_S2_L001_R1_001.fastq.gz SRR292862_S2_L001_R2_001.fastq.gz
 ```
+### 2.2. Run fastqc
+
+```ruby
+fastqc -o ../QC SRR292678sub_S1_L001_R1_001.fastq SRR292678sub_S1_L001_R2_001.fastq SRR292770_S1_L001_R1_001.fastq SRR292770_S1_L001_R2_001.fastq SRR292862_S2_L001_R1_001.fastq SRR292862_S2_L001_R2_001.fastq
+```
+
 ### 2.4. Basic statistics of raw reads
 
-| Measure  | Value (Forward)|
-| ------------- |-------------|
-| Total Sequences | 358 265    |
-|  Sequence length  | 35-151  |
-| %GC    | 42  |
-| Low quality    | Per base sequence content, Sequence Duplication Levels |
+| **Measure**         | **SRR292678 (F)** | **SRR292678 (R)** | **SRR292770 (F)** | **SRR292770 (R)** | **SRR292862 (F)** | **SRR292862 (R)** |
+|---------------------|-------------------|-------------------|-------------------|-------------------|-------------------|-------------------|
+| **Total Sequences** | 5 499 346           | 5 499 346           | 5 102 041           | 5 102 041           | 5 102 041           | 5 102 041           |
+| **Sequence length** | 90                | 90                | 49                | 49                | 49                | 49                |
+| **%GC**             | 49                | 49                | 50                | 49                | 50                | 49                |
+| **Poor quality**   | 0                 | 0                 | 0                 | 0                 | 0                 | 0                 |
 
-## 3. Aligning sequences to reference
 
-### 3.1. Run bwa index
+### 2.5. K-mer profile and genome size estimation
 
-```ruby
-bwa index -p reference.fasta reference.fasta
+Install Jellyfish: a fast k-mer counter
 ```
-There are 5 new files in the directory:
-
-> - `reference.fasta.amb`
-> - `reference.fasta.ann`
-> - `reference.fasta.bwt`
-> - `reference.fasta.pac`
-> - `reference.fasta.sa`
-
-### 3.2. Run pipe with bwa mem and samtools
-
-```ruby
-bwa mem reference.fasta SRR1705851.fastq | samtools view -S -b - | samtools sort -o SRR1705851_aligned_sorted.bam
-```
-The names of the files `.amb`, `.ann`, `.bwt`, `.pac`, `.sa` must match the name of the file with the reference genome.
-
-### 3.3. Index bam file
-```ruby
-samtools index SRR1705851_aligned_sorted.bam
-```
-### 3.4. Create an intermediate mpileup file
-
-Set depth limit with the -d flag.
-
-```ruby
-samtools mpileup -d 0 -f reference.fasta SRR1705851_aligned_sorted.bam > SRR1705851.mpileup
-```
-## 4. Look for common variants with VarScan
-
-### 4.1. VarScan installation
-
-Download `VarScan.v2.4.0.jar` from [GitHub repository](https://github.com/dkoboldt/varscan) to your working directory.
-
-### 4.2. Run VarScan (0.95)
-
-Run the program with the threshold 0.95:
-
-```ruby
-java -jar VarScan.v2.4.0.jar mpileup2snp SRR1705851.mpileup --min-var-freq 0.95 --variants --output-vcf 1 > VarScan_results_0_95.vcf
-```
-> - Only SNPs will be reported
-> - Warning: No p-value threshold provided, so p-values will not be calculated
-> - Min coverage:   8
-> - Min reads2:     2
-> - Min var freq:   0.95
-> - Min avg qual:   15
-> - P-value thresh: 0.01
-> - Reading input from SRR1705851.mpileup
-> - 1665 bases in pileup file
-> - 5 variant positions (5 SNP, 0 indel)
-> - 0 were failed by the strand-filter
-> - 5 variant positions reported (5 SNP, 0 indel)
-
-### 4.3. Extract the basic information (0.95)
-
-Extract the basic variant information from the `.vcf` file:
-
-```ruby
-cat VarScan_results_0_95.vcf | awk 'NR>24 {print $1, $2, $4, $5, $10}' > Variants_0_95.txt
+sudo apt-get install jellyfish
 ```
 
-### 4.4. Visualize .vcf file
-Go to `IGV` browser and examine the mutations you find.
-
-##  5. Look for rare variants with VarScan
-
-### 5.1. Run VarScan (0.001)
-
-Run the program with the threshold 0.001:
-
-```ruby
-java -jar VarScan.v2.4.0.jar mpileup2snp SRR1705851.mpileup --min-var-freq 0.001 --variants --output-vcf 1 > VarScan_results_0_001.vcf
+Run Jellyfish (k-mer sizes of 31, length ~ 5.5M):
 ```
-> - Only SNPs will be reported
-> - Warning: No p-value threshold provided, so p-values will not be calculated
-> - Min coverage:   8
-> - Min reads2:     2
-> - Min var freq:   0.001
-> - Min avg qual:   15
-> - P-value thresh: 0.01
-> - Reading input from SRR1705851.mpileup
-> - 1665 bases in pileup file
-> - 23 variant positions (21 SNP, 2 indel)
-> - 0 were failed by the strand-filter
-> - 21 variant positions reported (21 SNP, 0 indel)
-
-
-### 5.2. Extract the basic information (0.001)
-
-Extract the basic variant information from the `.vcf` file:
-
-```ruby
-cat VarScan_results_0_001.vcf | awk 'NR>24 {print $1, $2, $4, $5, $10}' > Variants_0_001.txt
+jellyfish count -m 31 -s 6M -C SRR292678sub_S1_L001_R1_001.fastq
+jellyfish histo mer_counts.jf > hist_j.txt
 ```
+### Visualize k-mer distribution
+Genome size can be calculated by counting k-mer frequency of the read data. Using the Jellyfish output we plot the graph with R:
 
-## 6. Inspect and align the control sample sequencing data
+```r
+setwd('C:\\Users\\pmbog\\source\\WorkshpoBI\\Project3\\raw_data')
+hist_k_mer <- read.table("hist_j.txt")
 
-### 6.1. Download raw data
-
-```ruby
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR170/008/SRR1705858/SRR1705858.fastq.gz
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR170/009/SRR1705859/SRR1705859.fastq.gz
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/SRR170/000/SRR1705860/SRR1705860.fastq.gz
-
-gunzip SRR1705858.fastq.gz
-gunzip SRR1705859.fastq.gz
-gunzip SRR1705860.fastq.gz
+plot(hist_k_mer[4:150,],type="l")
+points(hist_k_mer[4:150,])
 ```
-### 6.2. Repeat all the steps for new files
+Calculate the total number of k-mer in the distribution:
 
-```ruby
-cat SRR1705858.fastq | wc -l
-cat SRR1705859.fastq | wc -l
-cat SRR1705860.fastq | wc -l
+```r
+sum(as.numeric(hist_k_mer[1:817,1]*hist_k_mer[1:817,2]))
 ```
-The files contain `256 586`, `233 327` and `249 964` reads, respectively.
+In this case there are about `329 960 760` k-mers in the histogram.
 
-```ruby
-fastqc -o ../QC SRR1705858.fastq
-fastqc -o ../QC SRR1705859.fastq
-fastqc -o ../QC SRR1705860.fastq
+Next, we want to know the peak position. From the graph, we can see its close to 60. Thus we examine the number close to 60 and find the maximum value
 ```
-The per base sequence quality was sufficient for all samples.
-
-```ruby
-bwa mem reference.fasta SRR1705858.fastq | samtools view -S -b - | samtools sort -o SRR1705858_aligned_sorted.bam
-
-bwa mem reference.fasta SRR1705859.fastq | samtools view -S -b - | samtools sort -o SRR1705859_aligned_sorted.bam
-
-bwa mem reference.fasta SRR1705860.fastq | samtools view -S -b - | samtools sort -o SRR1705860_aligned_sorted.bam
+hist_k_mer[55:65,]
 ```
+|    |       |
+|----|-------|
+| 55 | 86843 |
+| 56 | 87293 |
+| 57 | 87712 |
+| 58 | 87824 |
+| 59 | 88556 |
+| 60 | 88875 |
+| 61 | 89428 |
+| 62 | 89747 |
+| 63 | 88592 |
+| 64 | 88192 |
+| 65 | 87854 |
 
-```ruby
-samtools index SRR1705858_aligned_sorted.bam
-samtools index SRR1705859_aligned_sorted.bam
-samtools index SRR1705860_aligned_sorted.bam
+In this case, the peak is at 62. Then, the genome size can be estimated as:
+
 ```
-
-```ruby
-samtools mpileup -d 0 -f reference.fasta SRR1705858_aligned_sorted.bam > SRR1705858.mpileup
-
-samtools mpileup -d 0 -f reference.fasta SRR1705859_aligned_sorted.bam > SRR1705859.mpileup
-
-samtools mpileup -d 0 -f reference.fasta SRR1705860_aligned_sorted.bam > SRR1705860.mpileup
+sum(as.numeric(hist_k_mer[1:817,1]*hist_k_mer[1:817,2]))/62
 ```
+This reads as `5 321 948` - `5.32 Gb`.
 
-```ruby
-java -jar VarScan.v2.4.0.jar mpileup2snp SRR1705858.mpileup --min-var-freq 0.001 --variants --output-vcf 1 > VarScan_results58_0_001.vcf
+### Estimate the genome size 
 
-java -jar VarScan.v2.4.0.jar mpileup2snp SRR1705859.mpileup --min-var-freq 0.001 --variants --output-vcf 1 > VarScan_results59_0_001.vcf
+Let's calculate the size of the genome using the formula: 
+`N = (M*L)/(L-K+1)`
+`Genome_size = T/N`
+> M = 62: k-mer peak
+>
+> K = 31: k-mer-size
+>
+> L - 90: avg read length
+>
+> T = 5499346: total bases
+>
+> N = (62*90)/(90-31+1) = 93: depth of coverage
+>
+> **G = 5499346/93 = 59132.75**
 
-java -jar VarScan.v2.4.0.jar mpileup2snp SRR1705860.mpileup --min-var-freq 0.001 --variants --output-vcf 1 > VarScan_results60_0_001.vcf
-```
 
-```ruby
-cat VarScan_results58_0_001.vcf | awk 'NR>24 {print $1, $2, $4, $5, $10}' > Variants58_0_001.txt
 
-cat VarScan_results59_0_001.vcf | awk 'NR>24 {print $1, $2, $4, $5, $10}' > Variants59_0_001.txt
-
-cat VarScan_results60_0_001.vcf | awk 'NR>24 {print $1, $2, $4, $5, $10}' > Variants60_0_001.txt
-```
-## Error control
-
-### 6.3. Calculate the average and standard deviation
-
- Calculate the average and standard deviation of the frequencies reported within each list.
-
-|                      | Error rate (m±sd) |
-|----------------------|:-----------------:|
-| Variants58_0_001.txt |     0.26±0.07%    |
-| Variants59_0_001.txt |     0.24±0.05%    |
-| Variants60_0_001.txt |     0.25±0.08%    |
-
-Total error rate was `0.25±0.07%`. By calculating 3 standard deviations, we obtain that the error rate does not exceed `0.45%`.
-
-### 6.4. Compare the control results to your results
-
-| **Chromosome** | **Position** | **Reference** | **Alternative** | **Frequency** | **Change in protein** | **Type of gene variants** |
-|----------------|--------------|---------------|-----------------|---------------|------------------------|----------------------------|
-| KF848938.1     | 72           | A             | G               | 99.96%        | p.Thr24=               | Synonymous variant         |
-| KF848938.1     | 774          | T             | C               | 99.96%        | p.Phe258=              | Synonymous variant         |
-| KF848938.1     | 1260         | A             | C               | 99.94%        | p.Leu420=              | Synonymous variant         |
-| KF848938.1     | 999          | C             | T               | 99.86%        | p.Gly333=              | Synonymous variant         |
-| KF848938.1     | 117          | C             | T               | 99.82%        | p.Ala39=               | Synonymous variant         |
-| KF848938.1     | 307          | C             | T               | 0.94%         | p.Pro103Ser            | Missense variant           |
-| KF848938.1     | 1458         | T             | C               | 0.84%         | p.Tyr190=              | Synonymous variant         |
-| KF848938.1     | 802          | A             | G               | 0.23%         | Error                  |                            |
-| KF848938.1     | 389          | T             | C               | 0.22%         | Error                  |                            |
-| KF848938.1     | 1213         | A             | G               | 0.22%         | Error                  |                            |
-| KF848938.1     | 1086         | A             | G               | 0.21%         | Error                  |                            |
-| KF848938.1     | 722          | A             | G               | 0.20%         | Error                  |                            |
-| KF848938.1     | 915          | T             | C               | 0.19%         | Error                  |                            |
-| KF848938.1     | 859          | A             | G               | 0.18%         | Error                  |                            |
-| KF848938.1     | 1043         | A             | G               | 0.18%         | Error                  |                            |
-| KF848938.1     | 1280         | T             | C               | 0.18%         | Error                  |                            |
-| KF848938.1     | 254          | A             | G               | 0.17%         | Error                  |                            |
-| KF848938.1     | 276          | A             | G               | 0.17%         | Error                  |                            |
-| KF848938.1     | 340          | T             | C               | 0.17%         | Error                  |                            |
-| KF848938.1     | 691          | A             | G               | 0.17%         | Error                  |                            |
-| KF848938.1     | 744          | A             | G               | 0.17%         | Error                  |                            |
-
-As a result, 7 variants had a frequency higher than the error rate. At the same time, 5 of which were high-frequency. All high-frequency variants and one rare variant resulted in synonymous substitutions. Only one variant resulted in the replacement of the amino acid `p.Pro103Ser`.
-
-## Ready! You`re incredible!
+## Assembling E. coli X genome from paired reads
