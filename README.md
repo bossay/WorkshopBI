@@ -61,16 +61,16 @@ fastqc -o ../QC SRR292678sub_S1_L001_R1_001.fastq SRR292678sub_S1_L001_R2_001.fa
 ### 2.5. K-mer profile and genome size estimation
 
 Install Jellyfish: a fast k-mer counter
-```
+```ruby
 sudo apt-get install jellyfish
 ```
 
 Run Jellyfish (k-mer sizes of 31, length ~ 5.5M):
-```
+```ruby
 jellyfish count -m 31 -s 6M -C SRR292678sub_S1_L001_R1_001.fastq
 jellyfish histo mer_counts.jf > hist_j.txt
 ```
-### Visualize k-mer distribution
+### 2.6. Visualize k-mer distribution
 Genome size can be calculated by counting k-mer frequency of the read data. Using the Jellyfish output we plot the graph with R:
 
 ```r
@@ -112,7 +112,7 @@ sum(as.numeric(hist_k_mer[1:817,1]*hist_k_mer[1:817,2]))/62
 ```
 This reads as `5 321 948` - `5.32 Gb`.
 
-### Estimate the genome size 
+### 2.7. Estimate the genome size 
 
 Let's calculate the size of the genome using the formula: 
 `N = (M*L)/(L-K+1)`
@@ -123,12 +123,65 @@ Let's calculate the size of the genome using the formula:
 >
 > L - 90: avg read length
 >
-> T = 5499346: total bases
+> T = 5499346*90 = 494941140: total bases
 >
 > N = (62*90)/(90-31+1) = 93: depth of coverage
 >
-> **G = 5499346/93 = 59132.75**
-
-
+> **G = 494941140/93 = 5321948**
 
 ## Assembling E. coli X genome from paired reads
+
+### Installing SPAdes via conda
+
+```ruby
+conda install spades -c bioconda
+```
+
+To verify that the software was installed correctly, run it in the test mode:
+```ruby
+spades.py --test
+```
+If you do everything right, the last line of the output will be `Thank you for using SPAdes!`. More about [SPAdes](https://cab.spbu.ru/software/spades/)
+
+### Run SPAdes
+Run SPAdes in the paired-end mode, providing paired reads of E. coli X. from the library SRR292678 (forward and reverse):
+ ```ruby
+spades.py -1 SRR292678sub_S1_L001_R1_001.fastq -2 SRR292678sub_S1_L001_R2_001.fastq -o spades
+```
+### Installing QUAST via conda
+
+```ruby
+conda install quast -c bioconda
+```
+### Run QUAST
+```ruby
+cd spades
+quast.py contigs.fasta scaffolds.fasta
+```
+
+## Effect of read correction
+Repeat step 2.5 for corrected reads.
+
+```ruby
+cd spades/corrected
+jellyfish count -m 31 -s 6M -C SRR292678sub_S1_L001_R1_001.00.0_0.cor.fastq
+jellyfish histo mer_counts.jf > hist_j_cor.txt
+```
+Repeat the visualization and calculation of the genome size in R:
+```r
+hist_k_mer_cor <- read.table("spades_my\\corrected\\hist_j_cor.txt")
+plot(hist_k_mer_cor[4:150,],type="l")
+points(hist_k_mer_cor[4:150,])
+
+sum(as.numeric(hist_k_mer_cor[1:839,1]*hist_k_mer_cor[1:839,2]))
+hist_k_mer_cor[50:70,]
+sum(as.numeric(hist_k_mer_cor[1:839,1]*hist_k_mer_cor[1:839,2]))/64
+```
+In this case total number of k-mer is `329 960 760`, peak position - `64`, and genome size `5 155 220` - `5.16 Gb`.
+
+ Compare                   | **Uncorrected reads** | **Corrected reads** 
+---------------------------|:---------------------:|:-------------------:
+ **Total number of k-mers** | 329 960 760           | 329 934 081         
+ **Peak position**           | 62                    | 64                  
+ **Peak value**              | 89 747                | 88 759              
+ **Genome size**             | 5 321 948             | 5 155 220   
