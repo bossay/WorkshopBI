@@ -40,12 +40,12 @@ wget https://d28rh4a8wq0iu5.cloudfront.net/bioinfo/SRR292770_S1_L001_R2_001.fast
 
 ```ruby
 mkdir ../QC
-gunzip SRR292678sub_S1_L001_R1_001.fastq.gz SRR292678sub_S1_L001_R2_001.fastq.gz SRR292770_S1_L001_R1_001.fastq.gz SRR292770_S1_L001_R2_001.fastq.gz SRR292862_S2_L001_R1_001.fastq.gz SRR292862_S2_L001_R2_001.fastq.gz
+gunzip *.fastq.gz
 ```
 ### 2.2. Run fastqc
 
 ```ruby
-fastqc -o ../QC SRR292678sub_S1_L001_R1_001.fastq SRR292678sub_S1_L001_R2_001.fastq SRR292770_S1_L001_R1_001.fastq SRR292770_S1_L001_R2_001.fastq SRR292862_S2_L001_R1_001.fastq SRR292862_S2_L001_R2_001.fastq
+fastqc -o ../QC *.fastq
 ```
 
 ### 2.4. Basic statistics of raw reads
@@ -179,9 +179,22 @@ sum(as.numeric(hist_k_mer_cor[1:839,1]*hist_k_mer_cor[1:839,2]))/64
 ```
 In this case total number of k-mer is `329 960 760`, peak position - `64`, and genome size `5 155 220` - `5.16 Gb`.
 
- Compare                   | **Uncorrected reads** | **Corrected reads** 
+Compare                   | **Uncorrected reads** | **Corrected reads** 
 ---------------------------|:---------------------:|:-------------------:
- **Total number of k-mers** | 329 960 760           | 329 934 081         
- **Peak position**           | 62                    | 64                  
- **Peak value**              | 89 747                | 88 759              
- **Genome size**             | 5 321 948             | 5 155 220   
+**Total number of k-mers** | 329 960 760           | 329 934 081         
+**Peak position**           | 62                    | 64                  
+**Peak value**              | 89 747                | 88 759              
+**Genome size**             | 5 321 948             | 5 155 220           
+
+## Impact of reads with large insert size
+
+Run SPAdes providing all three libraries: SRR292678 as a paired ends,  SRR292862 and SRR292770 as a mate pairs:
+```ruby
+spades.py --pe1-1 SRR292678sub_S1_L001_R1_001.fastq --pe1-2 SRR292678sub_S1_L001_R2_001.fastq --mp1-1 SRR292770_S1_L001_R1_001.fastq --mp1-2 SRR292770_S1_L001_R2_001.fastq --mp2-1 SRR292862_S2_L001_R1_001.fastq --mp2-2 SRR292862_S2_L001_R2_001.fastq -o spades_three
+```
+Run QUAST:
+```ruby
+cd spades_three
+quast.py contigs.fasta scaffolds.fasta
+```
+## Genome Annotation
