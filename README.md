@@ -198,3 +198,13 @@ cd spades_three
 quast.py contigs.fasta scaffolds.fasta
 ```
 ## Genome Annotation
+
+### Installing Prokka via conda
+More about [Prokka](https://github.com/tseemann/prokka)
+```ruby
+conda install -c conda-forge -c bioconda -c defaults prokka
+```
+### Run Prokka
+```ruby
+prokka.py --outdir ./my_prokka --centre X --compliant spades_three/scaffolds.fasta
+```
