@@ -199,12 +199,56 @@ quast.py contigs.fasta scaffolds.fasta
 ```
 ## Genome Annotation
 
-### Installing Prokka via conda
+### Installing Prokka
 More about [Prokka](https://github.com/tseemann/prokka)
 ```ruby
-conda install -c conda-forge -c bioconda -c defaults prokka
+ conda create -n prokka_env -c conda-forge -c bioconda prokka
+ conda activate prokka_env
 ```
-### Run Prokka
+To check that the installation was successful
 ```ruby
-prokka.py --outdir ./my_prokka --centre X --compliant spades_three/scaffolds.fasta
+/home/bpm/prokka/bin/prokka --version
 ```
+That's right, if you see `prokka 1.14.6`
+
+### Run Prokka
+Run Prokka on the `scaffolds.fasta` file from the SPAdes output with default parameters. 
+```ruby
+prokka --outdir ./prokka --centre X --compliant spades_three/scaffolds.fasta
+```
+## Finding the closest relative of E. coli X
+Our goal is to find the known genome most similar to the pathogenic strain (and to infer the properties of E. coli X from it). An efficient approach is to select one important and evolutionarily conserved gene to compare with all other sequenced genomes. The gene we will use is 16S ribosomal RNA.
+
+To find the 16S rRNA in the collected E. coli X genome we will use the `Barrnap` rRNA gene prediction tool. 
+
+### Installing Barrnap via conda
+More about [Barrnap](https://github.com/tseemann/barrnap)
+```ruby
+conda install -c bioconda -c conda-forge barrnap
+```
+### Run Barrnap
+ 
+```ruby
+barrnap -o rrna.fa < ./spades_three/contigs.fasta > rrna.gff
+head -n 3 rrna.fa
+```
+>16S_rRNA::NODE_14_length_114134_cov_78.973238:45-1583(-)
+TTGAAGAGTTTGATCATGGCTCAGATTGAACGCTGGCGGCAGGCCTAACACATGCAAGTCGAACGGTAACAGGAAACAGCTTGCTGTTTCGCTGACGAGTGGCGGACGGGTGAGTAATGTCTGGGAAACTGCCTGATGGAGGGGGATAACTACTGGAAACGGTAGCTAATACCGCATAACGTCGCAAGACCAAAGAGGGGGACCTTCGGGCCTCTTGCCATCGGATGTGCCCAGATGGGATTAGCTTGTTGGTGGGGTAACGGCTCACCAAGGCGACGATCCCTAGCTGGTCTGAGAGGATGACCAGCCACACTGGAACTGAGACACGGTCCAGACTCCTACGGGAGGCAGCAGTGGGGAATATTGCACAATGGGCGCAAGCCTGATGCAGCCATGCCGCGTGTATGAAGAAGGCCTTCGGGTTGTAAAGTACTTTCAGCGGGGAGGAAGGGAGTAAAGTTAATACCTTTGCTCATTGACGTTACCCGCAGAAGAAGCACCGGCTAACTCCGTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCAAACAGGATTAGATACCCTGGTAGTCCACGCCGTAAACGATGTCGACTTGGAGGTTGTGCCCTTGAGGCGTGGCTTCCGGAGCTAACGCGTTAAGTCGACCGCCTGGGGAGTACGGCCGCAAGGTTAAAACTCAAATGAATTGACGGGGGCCCGCACAAGCGGTGGAGCATGTGGTTTAATTCGATGCAACGCGAAGAACCTTACCTGGTCTTGACATCCACGGAAGTTTTCAGAGATGAGAATGTGCCTTCGGGAACCGTGAGACAGGTGCTGCATGGCTGTCGTCAGCTCGTGTTGTGAAATGTTGGGTTAAGTCCCGCAACGAGCGCAACCCTTATCCTTTGTTGCCAGCGGTCCGGCCGGGAACTCAAAGGAGACTGCCAGTGATAAACTGGAGGAAGGTGGGGATGACGTCAAGTCATCATGGCCCTTACGACCAGGGCTACACACGTGCTACAATGGCGCATACAAAGAGAAGCGACCTCGCGAGAGCAAGCGGACCTCATAAAGTGCGTCGTAGTCCGGATTGGAGTCTGCAACTCGACTCCATGAAGTCGGAATCGCTAGTAATCGTGGATCAGAATGCCACGGTGAATACGTTCCCGGGCCTTGTACACACCGCCCGTCACACCATGGGAGTGGGTTGCAAAAGAAGTAGGTAGCTTAACCTTCGGGAGGGCGCTTACCACTTTGTGATTCATGACTGGGGTGAAGTCGTAACAAGGTAACCGTAGGGGAACCTGCGGTTGGATCACCTCCTT
+>16S_rRNA::NODE_21_length_75978_cov_83.376460:45-1583(-)
+
+
+### Search for the relative genome in the RefSeq
+We will now use `BLAST` to search for the genome in the `RefSeq` database with 16S rRNA that is most similar to the 16S rRNA that we just found.
+
++ Open the  [NCBI BLAST homepage](http://blast.ncbi.nlm.nih.gov)
++ Select `Nucleotide blast`
++ Select `Reference Genome Database (refseq_genomes)` in the `Database` field
++ Select `Escherichia coli` in the `Organism` field
++ Set the time range using parameter `PDAT` in the `Entrez Query` field `1900/01/01:2011/01/01[PDAT]`
++ Other parameters should be specified as default
+
+In the results, we found probably the closest relative of E. coli X, which can be used as a reference genome.
+
+>[Escherichia coli 55989, Sequence ID: NC_011748.1](https://www.ncbi.nlm.nih.gov/nucleotide/NC_011748.1?report=genbank&log$=nucltop&blast_rank=1&RID=S6AWDH15013)
+
+## What is the genetic cause of HUS?
