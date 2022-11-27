@@ -207,7 +207,7 @@ More about [Prokka](https://github.com/tseemann/prokka)
 ```
 To check that the installation was successful
 ```ruby
-/home/bpm/prokka/bin/prokka --version
+prokka --version
 ```
 That's right, if you see `prokka 1.14.6`
 
@@ -251,6 +251,8 @@ In the results, we found probably the closest relative of E. coli X, which can b
 
 >[Escherichia coli 55989, Sequence ID: NC_011748.1](https://www.ncbi.nlm.nih.gov/nucleotide/NC_011748.1?report=genbank&log$=nucltop&blast_rank=1&RID=S6AWDH15013)
 
+Save the found genome in `.fasta` format.
+
 ## What is the genetic cause of HUS?
 
 ### Installing Mauve
@@ -287,4 +289,38 @@ To search for genes responsible for antibiotic resistance, we will use [ResFinde
 
 For comparison, do the same for the reference strain.
 
+| **Antimicrobial**            | **Class**                   | **E. coli X** | **E. coli 55989** |
+|------------------------------|------------------------------|---------------|--------------------|
+| **Amoxicillin**              | Beta-lactam                  | Resistant     | No resistance      |
+| **Ampicillin**               | Beta-lactam                  | Resistant     | No resistance      |
+| **Aztreonam**                | Beta-lactam                  | Resistant     | No resistance      |
+| **Benzylkonium chloride**    | Quaternary ammonium compound | Resistant     | No resistance      |
+| **Cefepime**                 | Beta-lactam                  | Resistant     | No resistance      |
+| **Cefotaxime**               | Beta-lactam                  | Resistant     | No resistance      |
+| **Ceftazidime**              | Beta-lactam                  | Resistant     | No resistance      |
+| **Ceftriaxone**              | Beta-lactam                  | Resistant     | No resistance      |
+| **Cephalothin**              | Beta-lactam                  | Resistant     | No resistance      |
+| **Cetylpyridinium chloride** | Quaternary ammonium compound | Resistant     | No resistance      |
+| **Chlorhexidine**            | Quaternary ammonium compound | Resistant     | No resistance      |
+| **Doxycycline**              | Tetracycline                 | Resistant     | Resistant          |
+| **Ethidium bromide**         | Quaternary ammonium compound | Resistant     | No resistance      |
+| **Minocycline**              | Tetracycline                 | No resistance | Resistant          |
+| **Piperacillin**             | Beta-lactam                  | Resistant     | No resistance      |
+| **Streptomycin**             | Aminoglycoside               | Resistant     | No resistance      |
+| **Sulfamethoxazole**         | Folate pathway antagonist    | Resistant     | No resistance      |
+| **Tetracycline**             | Tetracycline                 | Resistant     | Resistant          |
+| **Ticarcillin**              | Beta-lactam                  | Resistant     | No resistance      |
+| **Trimethoprim**             | Folate pathway antagonist    | Resistant     | No resistance      |
 
+## Antibiotic resistance mechanism
+
+We have discovered that the E. coli X genome encodes Shiga-like toxin genes (stxA, stxB). Now let's figure out how this strain has acquired these weapons.
+
+We found that E. coli X acquired additional resistance to antibiotics. Some bacteria acquire specific enzymes that can degrade the antibiotic molecule itself. In our case, one of these enzymes is β-lactamase.
+Let's look at the genes that are located next to the β-lactamase genes. Use [BLAST](http://blast.ncbi.nlm.nih.gov) to find which organism they belong to.
+
+>Escherichia coli MS 182-1
+>
+>Escherichia coli E22
+
+## Ready! You`re incredible!
