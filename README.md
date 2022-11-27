@@ -252,3 +252,39 @@ In the results, we found probably the closest relative of E. coli X, which can b
 >[Escherichia coli 55989, Sequence ID: NC_011748.1](https://www.ncbi.nlm.nih.gov/nucleotide/NC_011748.1?report=genbank&log$=nucltop&blast_rank=1&RID=S6AWDH15013)
 
 ## What is the genetic cause of HUS?
+
+### Installing Mauve
+
+Download the [Mauve](https://darlinglab.org/mauve/download.html) version for your system. You may also need to install [Java x64](https://www.java.com/en/download/manual.jsp).
+
+### Compare the E. coli X with the reference genome
+
++ Open `Mauve`
++ Select `File` → `Align with progressiveMauve...`
++ Press `Add sequences`
++ Select the reference genome `NC_011748_1.fasta`, then the annotated E. coli X genome (`scaffolds.gbk` or `scaffolds.gbf`, depending on version)
++ Start the alignment
+
+Look for specific genes using `Sequence Navigator`. Select `Product` in the left window and enter the name of the desired gene in the right window.
+
+## Tracing the source of toxin genes in E. coli X
+We have discovered that the E. coli X genome encodes Shiga-like toxin genes (stxA, stxB). Now let's figure out how this strain has acquired these weapons.
+
+Consider the genes that are located next to the Shiga-type toxin genes. Let's use [BLAST](http://blast.ncbi.nlm.nih.gov) to find which organism they belong to. Most likely our bacterium acquired the toxin genes from this organism.
+
+>Escherichia coli O103:H2 str. 12009
+>
+>Escherichia coli O157:H7 str. EC508 ???
+>
+>Escherichia coli S88 ???
+
+## Antibiotic resistance detection
+To search for genes responsible for antibiotic resistance, we will use [ResFinder](https://cge.food.dtu.dk/services/ResFinder/), which specifically searches a database of genes implicated in antibiotic resistance, identifying similarities between the sequenced genome and this database using local alignment.
+
++ Visit the [ResFinder](https://cge.food.dtu.dk/services/ResFinder/) homepage
++ Upload the `scaffolds.fasta` file from the SPAdes output
++ In the field `Select Antimicrobial configuration` select `All`
+
+For comparison, do the same for the reference strain.
+
+
