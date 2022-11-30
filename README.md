@@ -55,7 +55,7 @@ fastqc -o ../QC *.fastq
 | **Total Sequences** | 5 499 346           | 5 499 346           | 5 102 041           | 5 102 041           | 5 102 041           | 5 102 041           |
 | **Sequence length** | 90                | 90                | 49                | 49                | 49                | 49                |
 | **%GC**             | 49                | 49                | 50                | 49                | 50                | 49                |
-| **Poor quality**   | 0                 | 0                 | 0                 | 0                 | 0                 | 0                 |
+| **Poor quality**    | 0                 | 0                 | 0                 | 0                 | 0                 | 0                 |
 
 
 ### 2.5. K-mer profile and genome size estimation
@@ -67,67 +67,63 @@ sudo apt-get install jellyfish
 
 Run Jellyfish (k-mer sizes of 31, length ~ 5.5M):
 ```ruby
-jellyfish count -m 31 -s 6M -C SRR292678sub_S1_L001_R1_001.fastq
-jellyfish histo mer_counts.jf > hist_j.txt
+jellyfish count -m 31 -s 6M -C SRR292678sub_S1_L001_R1_001.fastq SRR292678sub_S1_L001_R2_001.fastq -o SRR292678_v2.jf
+jellyfish histo SRR292678_v2.jf > hist_j_v2.txt
 ```
 ### 2.6. Visualize k-mer distribution
 Genome size can be calculated by counting k-mer frequency of the read data. Using the Jellyfish output we plot the graph with R:
 
 ```r
 setwd('C:\\Users\\pmbog\\source\\WorkshpoBI\\Project3\\raw_data')
-hist_k_mer <- read.table("hist_j.txt")
+hist_k_mer <- read.table("hist_j_v2.txt")
 
-plot(hist_k_mer[4:150,],type="l")
-points(hist_k_mer[4:150,])
+plot(hist_k_mer[4:400,],type="l", xlab = "Unique k-mers", ylab = "Count")
+points(hist_k_mer[4:400,])
 ```
 Calculate the total number of k-mer in the distribution:
 
 ```r
-sum(as.numeric(hist_k_mer[1:817,1]*hist_k_mer[1:817,2]))
+sum(as.numeric(hist_k_mer[1:1569,1]*hist_k_mer[1:1569,2]))
 ```
-In this case there are about `329 960 760` k-mers in the histogram.
+In this case there are about `659 921 520` k-mers in the histogram.
 
-Next, we want to know the peak position. From the graph, we can see its close to 60. Thus we examine the number close to 60 and find the maximum value
+Next, we want to know the peak position. From the graph, we can see its close to 120-130. Thus we examine the number close to 120-130 and find the maximum value
 ```
-hist_k_mer[55:65,]
+hist_k_mer[115:135,]
 ```
-|    |       |
-|----|-------|
-| 55 | 86843 |
-| 56 | 87293 |
-| 57 | 87712 |
-| 58 | 87824 |
-| 59 | 88556 |
-| 60 | 88875 |
-| 61 | 89428 |
-| 62 | 89747 |
-| 63 | 88592 |
-| 64 | 88192 |
-| 65 | 87854 |
+| **Count** | **Unique k-mers** |
+|-----------|-------------------|
+| ...       | ...               |
+| 123       | 46072             |
+| 124       | 45509             |
+| **125**   | **46189**         |
+| 126       | 45664             |
+| 127       | 45458             |
+| ...       | ...               |
 
-In this case, the peak is at 62. Then, the genome size can be estimated as:
+In this case, the peak is at 125. Then, the genome size can be estimated as:
 
 ```
-sum(as.numeric(hist_k_mer[1:817,1]*hist_k_mer[1:817,2]))/62
+sum(as.numeric(hist_k_mer[1:1569,1]*hist_k_mer[1:1569,2]))/125
 ```
-This reads as `5 321 948` - `5.32 Gb`.
+This reads as `5 279 372` - `5.28 Gb`.
 
 ### 2.7. Estimate the genome size 
 
 Let's calculate the size of the genome using the formula: 
 `N = (M*L)/(L-K+1)`
 `Genome_size = T/N`
-> M = 62: k-mer peak
+> M = 125: k-mer peak
 >
 > K = 31: k-mer-size
 >
 > L - 90: avg read length
 >
-> T = 5499346*90 = 494941140: total bases
+> T = 5499346*2*90 = 989882280: total bases
 >
-> N = (62*90)/(90-31+1) = 93: depth of coverage
+> N = (125*90)/(90-31+1) = 187.5: depth of coverage
 >
-> **G = 494941140/93 = 5321948**
+> **G = 989882280/187.5 = 5279372**
 
 ## Assembling E. coli X genome from paired reads
 
@@ -179,12 +175,12 @@ sum(as.numeric(hist_k_mer_cor[1:839,1]*hist_k_mer_cor[1:839,2]))/64
 ```
 In this case total number of k-mer is `329 960 760`, peak position - `64`, and genome size `5 155 220` - `5.16 Gb`.
 
-Compare                   | **Uncorrected reads** | **Corrected reads** 
+Compare                    | **Uncorrected reads** | **Corrected reads** 
 ---------------------------|:---------------------:|:-------------------:
-**Total number of k-mers** | 329 960 760           | 329 934 081         
-**Peak position**           | 62                    | 64                  
-**Peak value**              | 89 747                | 88 759              
-**Genome size**             | 5 321 948             | 5 155 220           
+**Total number of k-mers** | 659 921 520           | 329 934 081         
+**Peak position**          | 125                   | 64                  
+**Peak value**             | 46 189                | 88 759              
+**Genome size**            | 5 279 372             | 5 155 220           
 
 ## Impact of reads with large insert size
 
