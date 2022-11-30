@@ -111,7 +111,7 @@ This reads as `5 279 372` - `5.28 Gb`.
 ### 2.7. Estimate the genome size 
 
 Let's calculate the size of the genome using the formula: 
-`N = (M*L)/(L-K+1)`
+`N = (M×L)/(L-K+1)`
 `Genome_size = T/N`
 > M = 125: k-mer peak
 >
@@ -119,15 +119,15 @@ Let's calculate the size of the genome using the formula:
 >
 > L - 90: avg read length
 >
-> T = 5499346*2*90 = 989882280: total bases
+> T = 5499346×2×90 = 989882280: total bases
 >
-> N = (125*90)/(90-31+1) = 187.5: depth of coverage
+> N = (12590)/(90-31+1) = 187.5: depth of coverage
 >
 > **G = 989882280/187.5 = 5279372**
 
-## Assembling E. coli X genome from paired reads
+## 3. Assembling E. coli X genome from paired reads
 
-### Installing SPAdes via conda
+### 3.1. Installing SPAdes via conda
 
 ```ruby
 conda install spades -c bioconda
@@ -139,23 +139,23 @@ spades.py --test
 ```
 If you do everything right, the last line of the output will be `Thank you for using SPAdes!`. More about [SPAdes](https://cab.spbu.ru/software/spades/)
 
-### Run SPAdes
+### 3.2. Run SPAdes
 Run SPAdes in the paired-end mode, providing paired reads of E. coli X. from the library SRR292678 (forward and reverse):
  ```ruby
 spades.py -1 SRR292678sub_S1_L001_R1_001.fastq -2 SRR292678sub_S1_L001_R2_001.fastq -o spades
 ```
-### Installing QUAST via conda
+### 3.3. Installing QUAST via conda
 
 ```ruby
 conda install quast -c bioconda
 ```
-### Run QUAST
+### 3.4. Run QUAST
 ```ruby
 cd spades
 quast.py contigs.fasta scaffolds.fasta
 ```
 
-## Effect of read correction
+## 4. Effect of read correction
 Repeat step 2.5 for corrected reads.
 
 ```ruby
@@ -182,7 +182,7 @@ Compare                    | **Uncorrected reads** | **Corrected reads**
 **Peak value**             | 46 189                | 88 759              
 **Genome size**            | 5 279 372             | 5 155 220           
 
-## Impact of reads with large insert size
+## 5. Impact of reads with large insert size
 
 Run SPAdes providing all three libraries: SRR292678 as a paired ends,  SRR292862 and SRR292770 as a mate pairs:
 ```ruby
@@ -193,9 +193,9 @@ Run QUAST:
 cd spades_three
 quast.py contigs.fasta scaffolds.fasta
 ```
-## Genome Annotation
+## 6. Genome Annotation
 
-### Installing Prokka
+### 6.1. Installing Prokka
 More about [Prokka](https://github.com/tseemann/prokka)
 ```ruby
  conda create -n prokka_env -c conda-forge -c bioconda prokka
@@ -207,22 +207,22 @@ prokka --version
 ```
 That's right, if you see `prokka 1.14.6`
 
-### Run Prokka
+### 6.2. Run Prokka
 Run Prokka on the `scaffolds.fasta` file from the SPAdes output with default parameters. 
 ```ruby
 prokka --outdir ./prokka --centre X --compliant spades_three/scaffolds.fasta
 ```
-## Finding the closest relative of E. coli X
+## 7. Finding the closest relative of E. coli X
 Our goal is to find the known genome most similar to the pathogenic strain (and to infer the properties of E. coli X from it). An efficient approach is to select one important and evolutionarily conserved gene to compare with all other sequenced genomes. The gene we will use is 16S ribosomal RNA.
 
 To find the 16S rRNA in the collected E. coli X genome we will use the `Barrnap` rRNA gene prediction tool. 
 
-### Installing Barrnap via conda
+### 7.1. Installing Barrnap via conda
 More about [Barrnap](https://github.com/tseemann/barrnap)
 ```ruby
 conda install -c bioconda -c conda-forge barrnap
 ```
-### Run Barrnap
+### 7.2. Run Barrnap
  
 ```ruby
 barrnap -o rrna.fa < ./spades_three/contigs.fasta > rrna.gff
@@ -232,8 +232,7 @@ head -n 3 rrna.fa
 TTGAAGAGTTTGATCATGGCTCAGATTGAACGCTGGCGGCAGGCCTAACACATGCAAGTCGAACGGTAACAGGAAACAGCTTGCTGTTTCGCTGACGAGTGGCGGACGGGTGAGTAATGTCTGGGAAACTGCCTGATGGAGGGGGATAACTACTGGAAACGGTAGCTAATACCGCATAACGTCGCAAGACCAAAGAGGGGGACCTTCGGGCCTCTTGCCATCGGATGTGCCCAGATGGGATTAGCTTGTTGGTGGGGTAACGGCTCACCAAGGCGACGATCCCTAGCTGGTCTGAGAGGATGACCAGCCACACTGGAACTGAGACACGGTCCAGACTCCTACGGGAGGCAGCAGTGGGGAATATTGCACAATGGGCGCAAGCCTGATGCAGCCATGCCGCGTGTATGAAGAAGGCCTTCGGGTTGTAAAGTACTTTCAGCGGGGAGGAAGGGAGTAAAGTTAATACCTTTGCTCATTGACGTTACCCGCAGAAGAAGCACCGGCTAACTCCGTGCCAGCAGCCGCGGTAATACGGAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGCACGCAGGCGGTTTGTTAAGTCAGATGTGAAATCCCCGGGCTCAACCTGGGAACTGCATCTGATACTGGCAAGCTTGAGTCTCGTAGAGGGGGGTAGAATTCCAGGTGTAGCGGTGAAATGCGTAGAGATCTGGAGGAATACCGGTGGCGAAGGCGGCCCCCTGGACGAAGACTGACGCTCAGGTGCGAAAGCGTGGGGAGCAAACAGGATTAGATACCCTGGTAGTCCACGCCGTAAACGATGTCGACTTGGAGGTTGTGCCCTTGAGGCGTGGCTTCCGGAGCTAACGCGTTAAGTCGACCGCCTGGGGAGTACGGCCGCAAGGTTAAAACTCAAATGAATTGACGGGGGCCCGCACAAGCGGTGGAGCATGTGGTTTAATTCGATGCAACGCGAAGAACCTTACCTGGTCTTGACATCCACGGAAGTTTTCAGAGATGAGAATGTGCCTTCGGGAACCGTGAGACAGGTGCTGCATGGCTGTCGTCAGCTCGTGTTGTGAAATGTTGGGTTAAGTCCCGCAACGAGCGCAACCCTTATCCTTTGTTGCCAGCGGTCCGGCCGGGAACTCAAAGGAGACTGCCAGTGATAAACTGGAGGAAGGTGGGGATGACGTCAAGTCATCATGGCCCTTACGACCAGGGCTACACACGTGCTACAATGGCGCATACAAAGAGAAGCGACCTCGCGAGAGCAAGCGGACCTCATAAAGTGCGTCGTAGTCCGGATTGGAGTCTGCAACTCGACTCCATGAAGTCGGAATCGCTAGTAATCGTGGATCAGAATGCCACGGTGAATACGTTCCCGGGCCTTGTACACACCGCCCGTCACACCATGGGAGTGGGTTGCAAAAGAAGTAGGTAGCTTAACCTTCGGGAGGGCGCTTACCACTTTGTGATTCATGACTGGGGTGAAGTCGTAACAAGGTAACCGTAGGGGAACCTGCGGTTGGATCACCTCCTT
 >16S_rRNA::NODE_21_length_75978_cov_83.376460:45-1583(-)
 
-
-### Search for the relative genome in the RefSeq
+### 7.3. Search for the relative genome in the RefSeq
 We will now use `BLAST` to search for the genome in the `RefSeq` database with 16S rRNA that is most similar to the 16S rRNA that we just found.
 
 + Open the  [NCBI BLAST homepage](http://blast.ncbi.nlm.nih.gov)
@@ -249,13 +248,13 @@ In the results, we found probably the closest relative of E. coli X, which can b
 
 Save the found genome in `.fasta` format.
 
-## What is the genetic cause of HUS?
+## 8. What is the genetic cause of HUS?
 
-### Installing Mauve
+### 8.1. Installing Mauve
 
 Download the [Mauve](https://darlinglab.org/mauve/download.html) version for your system. You may also need to install [Java x64](https://www.java.com/en/download/manual.jsp).
 
-### Compare the E. coli X with the reference genome
+### 8.2. Compare the E. coli X with the reference genome
 
 + Open `Mauve`
 + Select `File` → `Align with progressiveMauve...`
@@ -265,7 +264,7 @@ Download the [Mauve](https://darlinglab.org/mauve/download.html) version for you
 
 Look for specific genes using `Sequence Navigator`. Select `Product` in the left window and enter the name of the desired gene in the right window.
 
-## Tracing the source of toxin genes in E. coli X
+## 9. Tracing the source of toxin genes in E. coli X
 We have discovered that the E. coli X genome encodes Shiga-like toxin genes (stxA, stxB). Now let's figure out how this strain has acquired these weapons.
 
 Consider the genes that are located next to the Shiga-type toxin genes. Let's use [BLAST](http://blast.ncbi.nlm.nih.gov) to find which organism they belong to. Most likely our bacterium acquired the toxin genes from this organism.
@@ -276,7 +275,7 @@ Consider the genes that are located next to the Shiga-type toxin genes. Let's us
 >
 >Escherichia coli S88 ???
 
-## Antibiotic resistance detection
+## 10. Antibiotic resistance detection
 To search for genes responsible for antibiotic resistance, we will use [ResFinder](https://cge.food.dtu.dk/services/ResFinder/), which specifically searches a database of genes implicated in antibiotic resistance, identifying similarities between the sequenced genome and this database using local alignment.
 
 + Visit the [ResFinder](https://cge.food.dtu.dk/services/ResFinder/) homepage
@@ -308,7 +307,7 @@ For comparison, do the same for the reference strain.
 | **Ticarcillin**              | Beta-lactam                  | Resistant     | No resistance      |
 | **Trimethoprim**             | Folate pathway antagonist    | Resistant     | No resistance      |
 
-## Antibiotic resistance mechanism
+## 11. Antibiotic resistance mechanism
 
 We have discovered that the E. coli X genome encodes Shiga-like toxin genes (stxA, stxB). Now let's figure out how this strain has acquired these weapons.
 
