@@ -264,6 +264,8 @@ Download the [Mauve](https://darlinglab.org/mauve/download.html) version for you
 
 Look for specific genes using `Sequence Navigator`. Select `Product` in the left window and enter the name of the desired gene in the right window.
 
+We found 2 shiga toxin-related genes stxA and stxB.
+
 ## 9. Tracing the source of toxin genes in E. coli X
 We have discovered that the E. coli X genome encodes Shiga-like toxin genes (stxA, stxB). Now let's figure out how this strain has acquired these weapons.
 
