@@ -160,27 +160,29 @@ Repeat step 2.5 for corrected reads.
 
 ```ruby
 cd spades/corrected
-jellyfish count -m 31 -s 6M -C SRR292678sub_S1_L001_R1_001.00.0_0.cor.fastq
-jellyfish histo mer_counts.jf > hist_j_cor.txt
+jellyfish count -m 31 -s 6M SRR292678sub_S1_L001_R1_001.00.0_0.cor.fastq -o corrected.jf
+jellyfish histo corrected.jf > hist_j_cor.txt
 ```
 Repeat the visualization and calculation of the genome size in R:
 ```r
 hist_k_mer_cor <- read.table("spades_my\\corrected\\hist_j_cor.txt")
-plot(hist_k_mer_cor[4:150,],type="l")
-points(hist_k_mer_cor[4:150,])
+plot(hist_k_mer_cor[1:400,],type="l", xlab = "Unique k-mers", ylab = "Count", main = "Corrected reads", ylim = c(0, 60000))
+points(hist_k_mer_cor[1:400,])
 
-sum(as.numeric(hist_k_mer_cor[1:839,1]*hist_k_mer_cor[1:839,2]))
-hist_k_mer_cor[50:70,]
-sum(as.numeric(hist_k_mer_cor[1:839,1]*hist_k_mer_cor[1:839,2]))/64
+sum(as.numeric(hist_k_mer_cor[1:1593,1]*hist_k_mer_cor[1:1593,2]))
+
+hist_k_mer_cor[115:135,]
+
+sum(as.numeric(hist_k_mer_cor[1:1593,1]*hist_k_mer_cor[1:1593,2]))/124
 ```
-In this case total number of k-mer is `329 960 760`, peak position - `64`, and genome size `5 155 220` - `5.16 Gb`.
+In this case total number of k-mer is `659 867 997`, peak position - `124`, and genome size `5 321 516` - `5.32 Gb`.
 
 Compare                    | **Uncorrected reads** | **Corrected reads** 
 ---------------------------|:---------------------:|:-------------------:
-**Total number of k-mers** | 659 921 520           | 329 934 081         
-**Peak position**          | 125                   | 64                  
-**Peak value**             | 46 189                | 88 759              
-**Genome size**            | 5 279 372             | 5 155 220           
+**Total number of k-mers** | 659 921 520           | 659 867 997         
+**Peak position**          | 125                   | 124                  
+**Peak value**             | 46 189                | 45 664              
+**Genome size**            | 5 279 372             | 5 321 516           
 
 ## 5. Impact of reads with large insert size
 
