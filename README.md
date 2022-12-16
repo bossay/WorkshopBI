@@ -97,7 +97,7 @@ Parsing for whole protein sequences:
 ```ruby
 xargs samtools faidx augustus.whole.aa < names.txt > proteins.faa
 ```
-> `names.txt` - file with the names of unique proteins
+> `names.txt` - file with the names of proteins
 
 ## 4. Localization prediction
 
